@@ -20,7 +20,6 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- No card: shows nothing when empty -->
             <TextView
                 android:id="@+id/tvcontent"
                 android:layout_width="match_parent"
