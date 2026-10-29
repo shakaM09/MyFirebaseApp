@@ -1,19 +1,7 @@
 package com.example.myapplication;
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -22,127 +10,120 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FirestoreDAO {
-    private static final String COLLECTION_NAME = "players";
+    private static final String COLLECTION = "Games";
+    private final FirebaseFirestore db;
+    private ListenerRegistration registration;
 
-
-    public void createDocument(String name, String number, int elo) {
-        Map<String, Object> playerRecord = new HashMap<>();
-        playerRecord.put("fullName", name);
-        playerRecord.put("number", number);
-        playerRecord.put("elo", elo);
-        DocumentReference docRef = FirebaseFirestore.getInstance().
-                collection(COLLECTION_NAME).document(number);
-
-
-        docRef.set(playerRecord).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                Log.d("DAO_FIREBASE","SUCCESSFUL WRITE!");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d("DAO_FIREBASE",e.getMessage().toString());
-            }
-        });
-
-    }
-    public void readDocumentById(String docID, IFirestoreCallback iFirestoreCallback){
-        DocumentReference docRef = FirebaseFirestore.getInstance().collection(COLLECTION_NAME).document(docID);
-
-        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                Players player = documentSnapshot.toObject(Players.class);
-                Log.d("DAO_FIREBASE","SUCCESSFUL READ!" + player);
-                ArrayList<Players> players= new ArrayList<>();
-                players.add(player);
-                iFirestoreCallback.onDataReceived(players);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d("DAO_FIREBASE","onFailure");
-            }
-        });
-    }
-    public void readAllDocuments(IFirestoreCallback iFirestoreCallback){
-        CollectionReference colRef= FirebaseFirestore.getInstance().collection(COLLECTION_NAME);
-        colRef.whereGreaterThan("elo",1000).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                ArrayList<Players> players= new ArrayList<>();
-                for(DocumentSnapshot docSS : queryDocumentSnapshots.getDocuments()){
-                   Players player = docSS.toObject(Players.class);
-                    Log.d("DAO_FIREBASE", "SUCCESSFUL READ!" + player);
-                   players.add(player);
-                }
-                iFirestoreCallback.onDataReceived(players);
-            }
-        });
+    public FirestoreDAO() {
+        db = FirebaseFirestore.getInstance();
     }
 
-    public void updateDocument(String documentId, int newElo) {
-
-        DocumentReference docRef = FirebaseFirestore.getInstance().collection(COLLECTION_NAME).document(documentId);
-        docRef.update("elo",newElo).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                Log.d("DAO_FIREBASE","SUCCESSFUL UPDATE!");
-            }
-        });
-
+    public void createDocument(Games game, IFirestoreCallback callback) {
+        db.collection(COLLECTION).document(game.getName()).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        callback.onOperationComplete(false, "A game with this name already exists");
+                        return;
+                    }
+                    db.collection(COLLECTION).document(game.getName()).set(game)
+                            .addOnSuccessListener(unused -> callback.onOperationComplete(true, "Game added"))
+                            .addOnFailureListener(e -> callback.onOperationComplete(false, "Failed to add game"));
+                })
+                .addOnFailureListener(e -> callback.onOperationComplete(false, "Failed to add game"));
     }
-    public void deleteDocument(String documentId){
-        DocumentReference docRef= FirebaseFirestore.getInstance().collection(COLLECTION_NAME).document(documentId);
-        docRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                Log.d("DAO_FIREBASE","SUCCESSFUL DELETE!");
+
+    public void readAllDocuments(IFirestoreCallback callback) {
+        db.collection(COLLECTION).get()
+                .addOnSuccessListener(snapshot -> callback.onDataReceived(toList(snapshot)))
+                .addOnFailureListener(e -> callback.onDataReceived(new ArrayList<>()));
+    }
+
+    public void readDocumentById(String name, IFirestoreCallback callback) {
+        db.collection(COLLECTION).document(name).get()
+                .addOnSuccessListener(snapshot -> {
+                    ArrayList<Games> list = new ArrayList<>();
+                    Games game = snapshot.toObject(Games.class);
+                    if (game != null) {
+                        list.add(game);
+                    }
+                    callback.onDataReceived(list);
+                })
+                .addOnFailureListener(e -> callback.onDataReceived(new ArrayList<>()));
+    }
+
+    public void readHoursMoreThan(double hours, IFirestoreCallback callback) {
+        db.collection(COLLECTION).whereGreaterThan("hours", hours).get()
+                .addOnSuccessListener(snapshot -> callback.onDataReceived(toList(snapshot)))
+                .addOnFailureListener(e -> callback.onDataReceived(new ArrayList<>()));
+    }
+
+    public void readHoursLessThan(double hours, IFirestoreCallback callback) {
+        db.collection(COLLECTION).whereLessThan("hours", hours).get()
+                .addOnSuccessListener(snapshot -> callback.onDataReceived(toList(snapshot)))
+                .addOnFailureListener(e -> callback.onDataReceived(new ArrayList<>()));
+    }
+
+    public void readByPriority(int priority, IFirestoreCallback callback) {
+        db.collection(COLLECTION).whereEqualTo("priority", priority).get()
+                .addOnSuccessListener(snapshot -> callback.onDataReceived(toList(snapshot)))
+                .addOnFailureListener(e -> callback.onDataReceived(new ArrayList<>()));
+    }
+
+    public void updateDocument(String name, Integer priority, Double hours, String imageBase64, IFirestoreCallback callback) {
+        Map<String, Object> updates = new HashMap<>();
+        if (priority != null) {
+            updates.put("priority", priority);
+        }
+        if (hours != null) {
+            updates.put("hours", hours);
+        }
+        if (imageBase64 != null) {
+            updates.put("imageBase64", imageBase64);
+        }
+        db.collection(COLLECTION).document(name).update(updates)
+                .addOnSuccessListener(unused -> callback.onOperationComplete(true, "Game updated"))
+                .addOnFailureListener(e -> callback.onOperationComplete(false, "Game not found or update failed"));
+    }
+
+    public void deleteDocument(String name, IFirestoreCallback callback) {
+        db.collection(COLLECTION).document(name).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) {
+                        callback.onOperationComplete(false, "Game not found");
+                        return;
+                    }
+                    db.collection(COLLECTION).document(name).delete()
+                            .addOnSuccessListener(unused -> callback.onOperationComplete(true, "Game deleted"))
+                            .addOnFailureListener(e -> callback.onOperationComplete(false, "Failed to delete game"));
+                })
+                .addOnFailureListener(e -> callback.onOperationComplete(false, "Failed to delete game"));
+    }
+
+    public void listenToAllDocumentsChange(IFirestoreCallback callback) {
+        stopListening();
+        registration = db.collection(COLLECTION).addSnapshotListener((snapshot, error) -> {
+            if (error != null || snapshot == null) {
+                return;
             }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d("DAO_FIREBASE", e.getMessage());
-            }
+            callback.onDataReceived(toList(snapshot));
         });
     }
-    public void listenToADocument(String docId){
-        DocumentReference docRef= FirebaseFirestore.getInstance().collection(COLLECTION_NAME).document(docId);
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                if(value != null && value.exists()){
-                    Players player = value.toObject(Players.class);
-                    Log.d("CHANGED_DAO", player.toString());
-                }
-            }
-        });
 
-    }
-    private ListenerRegistration listenerRegistration;
-    public void listenToAllDocumentsChange(){
-        CollectionReference colRef = FirebaseFirestore.getInstance().collection(COLLECTION_NAME);
-        colRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                if(error != null || value == null)
-                    return;
-
-                for(DocumentChange docC : value.getDocumentChanges()){
-                   Players player = docC.getDocument().toObject(Players.class);
-
-                    Log.d("DAO_MULTIPLE_CHANGES", docC.getType() + ":" + player.toString());
-                }
-            }
-        });
-    }
     public void stopListening() {
-        if (listenerRegistration != null) {
-            listenerRegistration.remove();
-            listenerRegistration = null;
+        if (registration != null) {
+            registration.remove();
+            registration = null;
         }
     }
 
-
+    private ArrayList<Games> toList(QuerySnapshot snapshot) {
+        ArrayList<Games> list = new ArrayList<>();
+        for (DocumentSnapshot document : snapshot.getDocuments()) {
+            Games game = document.toObject(Games.class);
+            if (game != null) {
+                list.add(game);
+            }
+        }
+        return list;
+    }
 }

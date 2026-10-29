@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="ocean_top">#00B4DB</color>
+    <color name="ocean_mid">#0083B0</color>
+    <color name="ocean_bottom">#003F6B</color>
+    <color name="navy">#003F6B</color>
+    <color name="coral">#E8505B</color>
+    <color name="white">#FFFFFF</color>
+    <color name="card_white">#F2FFFFFF</color>
 </resources>
