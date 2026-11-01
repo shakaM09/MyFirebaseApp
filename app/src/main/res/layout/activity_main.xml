@@ -13,12 +13,13 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="24dp"
+        android:background="#050F24"
+        >
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Game Tracker"
             android:textColor="@color/white"
             android:textSize="32sp"
             android:textStyle="bold" />
@@ -28,7 +29,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="20dp"
-            android:text="Played it. Plan to play it. Track it."
             android:textColor="@color/white"
             android:textSize="14sp" />
 
@@ -36,10 +36,10 @@
             android:id="@+id/ivGame"
             android:layout_width="180dp"
             android:layout_height="180dp"
-            android:background="@drawable/bg_card"
             android:padding="12dp"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_camera" />
+            android:background="@android:drawable/ic_menu_camera"
+            />
 
         <TextView
             android:layout_width="wrap_content"
@@ -54,40 +54,37 @@
             android:id="@+id/etName"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:background="@drawable/bg_input"
+            android:textColorHint="@color/white"
             android:hint="Game name"
             android:inputType="textCapWords"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/navy"
-            android:textColorHint="#7A9BB5" />
+            android:textColor="@color/white" />
 
         <EditText
             android:id="@+id/etPriority"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_input"
             android:hint="Priority (1-3, 1 is top)"
             android:inputType="number"
             android:maxLength="1"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/navy"
-            android:textColorHint="#7A9BB5" />
+            android:textColorHint="@color/white"
+            android:textColor="@color/white"/>
 
         <EditText
             android:id="@+id/etHours"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_input"
             android:hint="Hours played"
             android:inputType="numberDecimal"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/navy"
-            android:textColorHint="#7A9BB5" />
+            android:textColorHint="@color/white"
+            android:textColor="@color/white"/>
 
         <LinearLayout
             android:layout_width="match_parent"
