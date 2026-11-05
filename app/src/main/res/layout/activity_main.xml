@@ -11,11 +11,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:background="#050F24"
-        >
+        android:background="#050F24">
+
+        <include layout="@layout/view_top_bar" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -132,5 +139,6 @@
             android:backgroundTint="@color/white"
             android:text="Show all games"
             android:textColor="@color/navy" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

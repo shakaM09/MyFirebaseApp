@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         btnShowAll = findViewById(R.id.btnShowAll);
 
         fsDAO = new FirestoreDAO();
+        ProfileBarHelper.attach(this, findViewById(R.id.ivProfile));
 
         ivGame.setOnClickListener(new View.OnClickListener() {
             @Override

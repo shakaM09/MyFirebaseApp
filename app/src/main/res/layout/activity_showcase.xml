@@ -8,6 +8,8 @@
     android:orientation="vertical"
     tools:context=".ShowcaseActivity">
 
+    <include layout="@layout/view_top_bar" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

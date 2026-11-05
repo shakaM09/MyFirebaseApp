@@ -57,6 +57,7 @@ public class ShowcaseActivity extends AppCompatActivity {
         Button btnP3 = findViewById(R.id.btnP3);
 
         fsDAO = new FirestoreDAO();
+        ProfileBarHelper.attach(this, findViewById(R.id.ivProfile));
 
         btnAddDelete.setOnClickListener(new View.OnClickListener() {
             @Override
